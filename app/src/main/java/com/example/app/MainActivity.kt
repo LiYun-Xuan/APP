@@ -29,6 +29,7 @@ class MainActivity : AppCompatActivity() {
     lateinit var job: Job
     lateinit var btnSt:ImageView
     lateinit var sv:MySurfaceView
+    lateinit var img:ImageView
 
     @SuppressLint("ResourceType")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -64,6 +65,13 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         })
+
+        img = findViewById(R.id.mypicture)
+        GlideApp.with(this)
+            .load(R.drawable.mypicture)
+            .circleCrop()
+            .override(1600,1200)
+            .into(img)
     }
 }
 
