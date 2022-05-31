@@ -11,6 +11,7 @@ class MySurfaceView(context: Context?, attrs: AttributeSet?)
     : SurfaceView(context, attrs), SurfaceHolder.Callback{
     var surfaceHolder: SurfaceHolder
     var BG: Bitmap
+    var BGmoveX:Int = 0
 
     init {
         surfaceHolder = getHolder()
@@ -31,7 +32,22 @@ class MySurfaceView(context: Context?, attrs: AttributeSet?)
         var w:Int = width
         var h:Int = height
         var DestRect: Rect = Rect(0, 0, w, h)
-        canvas.drawBitmap(BG, SrcRect, DestRect, null)
+        //canvas.drawBitmap(BG, SrcRect, DestRect, null)
+
+        //背景往左捲動
+        BGmoveX -= 3
+        var BGnewX:Int = w + BGmoveX
+
+        if (BGnewX <= 0) {
+            BGmoveX = 0
+            canvas.drawBitmap(BG, SrcRect, DestRect, null)
+        } else {
+            DestRect = Rect(BGmoveX, 0, BGnewX, h)
+            canvas.drawBitmap(BG, SrcRect, DestRect, null)
+
+            DestRect = Rect(BGnewX, 0, w + BGnewX, h)
+            canvas.drawBitmap(BG, SrcRect, DestRect, null)
+        }
     }
 
     override fun surfaceChanged(holder: SurfaceHolder, format: Int, width: Int, height: Int) {
