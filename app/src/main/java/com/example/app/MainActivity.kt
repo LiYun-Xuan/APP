@@ -3,12 +3,10 @@ package com.example.app
 import android.annotation.SuppressLint
 import android.graphics.Canvas
 import android.media.Image
+import android.media.MediaPlayer
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.view.GestureDetector
-import android.view.MotionEvent
-import android.view.SurfaceView
-import android.view.View
+import android.view.*
 import android.widget.Button
 import android.widget.ImageButton
 import android.widget.ImageView
@@ -26,16 +24,19 @@ import kotlin.properties.Delegates
 public final class MyAppGlideModule : AppGlideModule()
 
 class MainActivity : AppCompatActivity(),
-    GestureDetector.OnGestureListener{
+    GestureDetector.OnGestureListener, View.OnTouchListener {
 
-    var btn:Boolean = true
-    var cnt:Int = 1
+    var btn: Boolean = true
+    var cnt: Int = 1
     lateinit var job: Job
-    lateinit var btnSt:ImageView
-    lateinit var sv:MySurfaceView
-    lateinit var img:ImageView
-    lateinit var fly:ImageView
-    lateinit var gd:GestureDetector
+    lateinit var btnSt: ImageView
+    lateinit var sv: MySurfaceView
+    lateinit var img: ImageView
+    lateinit var fly: ImageView
+    lateinit var gd: GestureDetector
+    lateinit var mp: MediaPlayer
+    var shoot: Boolean = false
+    var cnt2: Int = 0
 
     @SuppressLint("ResourceType")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -43,20 +44,25 @@ class MainActivity : AppCompatActivity(),
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+
         btnSt = findViewById(R.id.btnSt)
         sv = findViewById(R.id.sv)
         fly = findViewById(R.id.fly)
-        gd = GestureDetector(this,this)
+        gd = GestureDetector(this, this)
+        mp = MediaPlayer()
 
-        btnSt.setOnClickListener(object:View.OnClickListener{
+        //不要自動休眠
+        //getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+
+        btnSt.setOnClickListener(object : View.OnClickListener {
             override fun onClick(p0: View?) {
-                if (cnt == 1){
+                if (cnt == 1) {
                     cnt = 0;
                     btnSt.setImageResource(R.drawable.stop)
                     btn = true
 
                     job = GlobalScope.launch(Dispatchers.Main) {
-                        while(btn == true) {
+                        while (btn == true) {
                             val canvas: Canvas = sv.holder.lockCanvas()
                             sv.drawSomething(canvas)
                             sv.holder.unlockCanvasAndPost(canvas)
@@ -66,10 +72,23 @@ class MainActivity : AppCompatActivity(),
                             delay(20)
                             fly.setImageResource(R.drawable.fly1)
                             delay(20)
+
+                            if (shoot == true && cnt2 == 1){
+                                cnt2 = 0
+                                fly.setImageResource(R.drawable.shoot1)
+                                delay(20)
+                                fly.setImageResource(R.drawable.shoot2)
+                                delay(20)
+                                fly.setImageResource(R.drawable.shoot3)
+                                delay(20)
+                                fly.setImageResource(R.drawable.shoot4)
+                                delay(20)
+                                fly.setImageResource(R.drawable.shoot5)
+                                delay(20)
+                            }
                         }
                     }
-                }
-                else{
+                }else {
                     btn = false
                     job.cancel()
                     cnt = 1
@@ -82,18 +101,43 @@ class MainActivity : AppCompatActivity(),
         GlideApp.with(this)
             .load(R.drawable.mypicture)
             .circleCrop()
-            .override(1600,1200)
+            .override(1600, 1200)
             .into(img)
     }
 
     override fun onTouchEvent(event: MotionEvent?): Boolean {
-        if(btn == true){
+        if (btn == true) {
+            fly.setOnTouchListener(this)
             gd.onTouchEvent(event)
         }
         return true
     }
 
+    fun StartPlay(v: View) {
+        mp.reset()
+
+        when (v.id) {
+            R.id.fly -> {
+                mp = MediaPlayer.create(this, R.raw.shoot)
+                mp.start()
+            }
+        }
+    }
+
+    override fun onTouch(p0: View?, event: MotionEvent?): Boolean {
+        if (btn == true) {
+            gd.onTouchEvent(event)
+            shoot = true
+            cnt2 = 1;
+        }
+        return true
+    }
+
     override fun onDown(e: MotionEvent?): Boolean { //短按，每次點擊時發生
+        if(shoot == true){
+            shoot = false
+            StartPlay(fly)
+        }
         return true
     }
 
