@@ -26,17 +26,16 @@ public final class MyAppGlideModule : AppGlideModule()
 class MainActivity : AppCompatActivity(),
     GestureDetector.OnGestureListener, View.OnTouchListener {
 
-    var btn: Boolean = true
-    var cnt: Int = 1
+    var btn: Boolean = false     //現在工作執行狀態，按下start為執行，按下stop為暫停
+    var cnt: Int = 1    //紀錄現在按鈕圖片為? 1 表示為start, 0 表示為stop
     lateinit var job: Job
-    lateinit var btnSt: ImageView
-    lateinit var sv: MySurfaceView
-    lateinit var img: ImageView
-    lateinit var fly: ImageView
-    lateinit var gd: GestureDetector
-    lateinit var mp: MediaPlayer
-    var shoot: Boolean = false
-    var cnt2: Int = 0
+    lateinit var btnSt: ImageView   //按鈕圖片
+    lateinit var sv: MySurfaceView  //背景繪製與轉動
+    lateinit var img: ImageView     //放在按鈕旁的個人照
+    lateinit var fly: ImageView     //飛機照片
+    lateinit var gd: GestureDetector    //觸控監聽
+    lateinit var mp: MediaPlayer    //撥放音訊
+    var shoot: Boolean = false      //是否按下fly(飛機圖片)
 
     @SuppressLint("ResourceType")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -50,9 +49,6 @@ class MainActivity : AppCompatActivity(),
         fly = findViewById(R.id.fly)
         gd = GestureDetector(this, this)
         mp = MediaPlayer()
-
-        //不要自動休眠
-        //getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
 
         btnSt.setOnClickListener(object : View.OnClickListener {
             override fun onClick(p0: View?) {
@@ -68,13 +64,11 @@ class MainActivity : AppCompatActivity(),
                             sv.holder.unlockCanvasAndPost(canvas)
                             delay(20)
 
-                            fly.setImageResource(R.drawable.fly2)
-                            delay(20)
-                            fly.setImageResource(R.drawable.fly1)
-                            delay(20)
+                            if (shoot == true){        //按下fly時才換圖片，沒按時回到圖片fly1/2輪播
+                                shoot = false
 
-                            if (shoot == true && cnt2 == 1){
-                                cnt2 = 0
+                                StartPlay(fly)
+
                                 fly.setImageResource(R.drawable.shoot1)
                                 delay(20)
                                 fly.setImageResource(R.drawable.shoot2)
@@ -84,6 +78,11 @@ class MainActivity : AppCompatActivity(),
                                 fly.setImageResource(R.drawable.shoot4)
                                 delay(20)
                                 fly.setImageResource(R.drawable.shoot5)
+                                delay(20)
+                            }else{
+                                fly.setImageResource(R.drawable.fly2)
+                                delay(20)
+                                fly.setImageResource(R.drawable.fly1)
                                 delay(20)
                             }
                         }
@@ -113,7 +112,7 @@ class MainActivity : AppCompatActivity(),
         return true
     }
 
-    fun StartPlay(v: View) {
+    fun StartPlay(v: View) {    //撥放音訊
         mp.reset()
 
         when (v.id) {
@@ -125,19 +124,12 @@ class MainActivity : AppCompatActivity(),
     }
 
     override fun onTouch(p0: View?, event: MotionEvent?): Boolean {
-        if (btn == true) {
-            gd.onTouchEvent(event)
-            shoot = true
-            cnt2 = 1;
-        }
-        return true
+        shoot = true
+        return false
     }
 
     override fun onDown(e: MotionEvent?): Boolean { //短按，每次點擊時發生
-        if(shoot == true){
-            shoot = false
-            StartPlay(fly)
-        }
+
         return true
     }
 
@@ -150,7 +142,7 @@ class MainActivity : AppCompatActivity(),
     }
 
     override fun onScroll(e1: MotionEvent?, e2: MotionEvent?, distanceX: Float, distanceY: Float): Boolean {    //拖曳
-        fly.y = e2!!.y
+        fly.y = e2!!.y      //讓fly(飛機圖片) = 手指拖曳的位置 (只有y座標)
         return true
     }
 
